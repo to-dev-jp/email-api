@@ -5,8 +5,9 @@
 package main
 
 import (
-	// "echo/errors"
+	"email-api/errors"
 	"email-api/routers"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -22,11 +23,15 @@ func main() {
 	e.Use(middleware.Gzip())      // Gzip圧縮
 
 	// カスタムエラーハンドラを登録
-	// e.HTTPErrorHandler = errors.CustomHTTPErrorHandler
+	e.HTTPErrorHandler = errors.CustomHTTPErrorHandler
 
 	// ルーティング
 	routers.SetupRouter(e)
 
 	// サーバー起動
-	e.Logger.Fatal(e.Start(":1323"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "1323" // ローカル開発用のフォールバック
+	}
+	e.Logger.Fatal(e.Start(":" + port))
 }
