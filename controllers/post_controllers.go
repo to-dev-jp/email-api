@@ -37,24 +37,19 @@ func (p *PostController) SendEmail(c echo.Context) error {
 
     client := resend.NewClient(apiKey)
 
-	name := c.FormValue("name")
-	company := c.FormValue("company")
-	email := c.FormValue("email")
-	subject := c.FormValue("subject")
-	message := c.FormValue("message")
-
     params := &resend.SendEmailRequest{
         From:    "onboarding@resend.dev",
         To:      []string{"halot01025@gmail.com"},
-		ReplyTo: email,
-        Subject: subject,
-        Html:    "<p>Name:" + name + "</p><p>Company:" + company + "</p><p>Message:" + message + "</p>",
+		ReplyTo: post.Email,
+        Subject: post.Subject,
+        Html:    "<p>Name:" + post.Name + "</p><p>Company:" + post.Company + "</p><p>Message:" + post.Message + "</p>",
     }
 
     sent, err := client.Emails.Send(params)
     if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create a post.")
+		return echo.NewHTTPError(http.StatusInternalServerError, map[string]string{
+        "message": "Failed to send email."})
 	}
 
-	return c.JSON(http.StatusCreated, sent)
+	return c.JSON(http.StatusOK, sent)
 }
