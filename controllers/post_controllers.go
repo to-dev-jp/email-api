@@ -5,11 +5,14 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 
 	"email-api/models"
+	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/resend/resend-go/v3"
 )
@@ -33,7 +36,14 @@ func (p *PostController) SendEmail(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body.")
 	}
 	
-	apiKey := "re_DuxRwdR2_2datak4nRcxY91Znhmj2KyxL"
+	if os.Getenv("APP_ENV") != "production" {
+        err := godotenv.Load() // デフォルトで ".env" を読む
+        if err != nil {
+            fmt.Println("Warning: .env file not found")
+        }
+	}
+
+	apiKey := os.Getenv("API_KEY")
 
     client := resend.NewClient(apiKey)
 
