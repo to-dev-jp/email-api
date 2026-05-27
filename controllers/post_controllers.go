@@ -132,7 +132,7 @@ func (p *PostController) SendEmail(c echo.Context) error {
 	_, err := client.Emails.Send(notifyParams)
 	if err != nil {
     fmt.Println("通知メール送信エラー:", err) // ← 追加
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "送信失敗"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "送信失敗"+err})
 	}
 
 	// 自動返信メール送信
