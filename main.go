@@ -43,6 +43,12 @@ func main() {
 	// カスタムエラーハンドラを登録
 	e.HTTPErrorHandler = errors.CustomHTTPErrorHandler
 
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+    	AllowOrigins: []string{"https://to-dev.jp"}, // 自分のフロントのドメインのみ
+	}))
+
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(5)))
+
 	// ルーティング
 	routers.SetupRouter(e)
 

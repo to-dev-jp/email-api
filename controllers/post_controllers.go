@@ -43,13 +43,12 @@ func (p *PostController) SendEmail(c echo.Context) error {
 
 	apiKey := os.Getenv("API_KEY")
 	myEmail := os.Getenv("EMAIL_ADDRESS")
-fmt.Printf("EMAIL_ADDRESS: [%s]\n", myEmail) 
 
     client := resend.NewClient(apiKey)
 
 	notifyParams := &resend.SendEmailRequest{
-	From:    myEmail,
-	To:      []string{"halot01025@gmail.com"}, // 自分のアドレス
+	From:    "onboarding@resend.dev",
+	To:      []string{myEmail}, // 自分のアドレス
 	ReplyTo: post.Email,                 // 返信先 = お問い合わせ者
 	Subject: "【お問い合わせ】" + post.Subject,
 	Html: `
@@ -91,8 +90,7 @@ fmt.Printf("EMAIL_ADDRESS: [%s]\n", myEmail)
 	// 送信者への自動返信
 	autoReplyParams := &resend.SendEmailRequest{
 		From:    myEmail,
-		// To:      []string{post.Email},
-		To: []string{"halot01025@gmail.com"},
+		To:      []string{post.Email},
 		Subject: "【自動返信】お問い合わせありがとうございます",
 		Html: `
 			<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
