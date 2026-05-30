@@ -47,7 +47,7 @@ func (p *PostController) SendEmail(c echo.Context) error {
     client := resend.NewClient(apiKey)
 
 	notifyParams := &resend.SendEmailRequest{
-	From:    "onboarding@resend.dev",
+	From:    myEmail,
 	To:      []string{myEmail}, // 自分のアドレス
 	ReplyTo: post.Email,                 // 返信先 = お問い合わせ者
 	Subject: "【お問い合わせ】" + post.Subject,
