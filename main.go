@@ -44,7 +44,7 @@ func main() {
 	e.HTTPErrorHandler = errors.CustomHTTPErrorHandler
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-    	AllowOrigins: []string{"https://to-dev.jp"}, // 自分のフロントのドメインのみ
+    	AllowOrigins: []string{"https://to-dev.jp"},
 	}))
 
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(5)))

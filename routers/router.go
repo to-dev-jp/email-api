@@ -12,17 +12,6 @@ import (
 
 // ルーティングの設定
 func SetupRouter(e *echo.Echo) {
-
-	/*
-		// モックのリポジトリを作成
-		repo := &db.DbPostRepository{}
-	*/
-
-	// モックのリポジトリを作成
-	// repo := &mock.MockdbPostRepository{
-	// 	Posts: mock.Posts,
-	// }
-
 	// コントローラを初期化
 	// Repositoryをコントローラに注入
 	postController := &controllers.PostController{}

@@ -43,7 +43,7 @@ func (p *PostController) SendEmail(c echo.Context) error {
 
 	apiKey := os.Getenv("API_KEY")
 	myEmail := os.Getenv("EMAIL_ADDRESS")
-
+	
     client := resend.NewClient(apiKey)
 
 	notifyParams := &resend.SendEmailRequest{
