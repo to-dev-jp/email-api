@@ -7,8 +7,10 @@ package main
 import (
 	"email-api/errors"
 	"email-api/routers"
-	"fmt"
+	"log"
 	"os"
+
+	"github.com/resend/resend-go/v3"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
@@ -25,12 +27,22 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func main() {
-	if os.Getenv("APP_ENV") != "production" {
-        err := godotenv.Load()
-        if err != nil {
-            fmt.Println("Warning: .env file not found")
+	 if os.Getenv("APP_ENV") != "production" {
+        if err := godotenv.Load(); err != nil {
+            log.Println("Warning: .env file not found")
         }
-	}
+    }
+
+    apiKey := os.Getenv("API_KEY")
+    if apiKey == "" {
+        log.Fatal("API_KEY が設定されていません")
+    }
+    myEmail := os.Getenv("EMAIL_ADDRESS")
+    if myEmail == "" {
+        log.Fatal("EMAIL_ADDRESS が設定されていません")
+    }
+	client := resend.NewClient(apiKey)
+
 	// Echoのインスタンス作成
 	e := echo.New()
 	e.Validator = &CustomValidator{validator: validator.New()} 
@@ -50,7 +62,7 @@ func main() {
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(5)))
 
 	// ルーティング
-	routers.SetupRouter(e)
+	routers.SetupRouter(e, client, myEmail)
 
 	// サーバー起動
 	port := os.Getenv("PORT")
