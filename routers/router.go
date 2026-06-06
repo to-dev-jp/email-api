@@ -15,9 +15,9 @@ import (
 func SetupRouter(e *echo.Echo, client *resend.Client, myEmail string) {
 	// コントローラを初期化
 	postController := &controllers.PostController{
-        Client:  client,
-        MyEmail: myEmail,
-    }
+		Client:  client,
+		MyEmail: myEmail,
+	}
 
 	// /v1/api に関連するエンドポイントをグループ化
 	api := e.Group("/v1/api")

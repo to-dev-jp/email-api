@@ -6,7 +6,6 @@ package controllers
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"net/http"
 
@@ -18,10 +17,9 @@ import (
 
 // PostController は投稿に関連するコントローラ
 type PostController struct {
-    Client   *resend.Client
-    MyEmail  string
+	Client  *resend.Client
+	MyEmail string
 }
-
 
 const notifyTmplText = `
 		<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -100,61 +98,63 @@ var autoReplyTmpl = template.Must(template.New("autoReply").Parse(autoReplyTmplT
 
 // 投稿の作成のコントローラ
 func (p *PostController) SendEmail(c echo.Context) error {
-	
+
 	// リクエストボディの取得
 	post := new(models.Post)
 	if err := c.Bind(post); err != nil {
-    	return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body.")
+		return echo.NewHTTPError(http.StatusBadRequest, "リクエストの形式が不正です。")
 	}
 
 	// バリデーション追加
 	if err := c.Validate(post); err != nil {
-    	return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return echo.NewHTTPError(http.StatusBadRequest, "入力内容に誤りがあります。")
 	}
 
 	var notifyBuf bytes.Buffer
 	if err := notifyTmpl.Execute(&notifyBuf, post); err != nil {
-    	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "テンプレート処理失敗"})
+		c.Logger().Error("通知テンプレート処理失敗:", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "サーバーでエラーが発生しました。")
 	}
 
 	notifyParams := &resend.SendEmailRequest{
-	From:    p.MyEmail,
-	To:      []string{p.MyEmail}, // 自分のアドレス
-	ReplyTo: post.Email,                 // 返信先 = お問い合わせ者
-	Subject: "【お問い合わせ】" + post.Subject,
-	Html: notifyBuf.String(),
+		From:    p.MyEmail,
+		To:      []string{p.MyEmail}, // 自分のアドレス
+		ReplyTo: post.Email,          // 返信先 = お問い合わせ者
+		Subject: "【お問い合わせ】" + post.Subject,
+		Html:    notifyBuf.String(),
 	}
 
 	data := struct {
-    *models.Post
-    MyEmail string
+		*models.Post
+		MyEmail string
 	}{Post: post, MyEmail: p.MyEmail}
-	
+
 	var replyBuf bytes.Buffer
-		if err := autoReplyTmpl.Execute(&replyBuf, data); err != nil {
-    return c.JSON(http.StatusInternalServerError, map[string]string{"error": "テンプレート処理失敗"})
-}
+	if err := autoReplyTmpl.Execute(&replyBuf, data); err != nil {
+		c.Logger().Error("自動返信テンプレート処理失敗:", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "サーバーでエラーが発生しました。")
+	}
 	// 送信者への自動返信
 	autoReplyParams := &resend.SendEmailRequest{
 		From:    p.MyEmail,
 		To:      []string{post.Email},
 		Subject: "【自動返信】お問い合わせありがとうございます",
-		Html: replyBuf.String(),
+		Html:    replyBuf.String(),
 	}
 
 	_, err := p.Client.Emails.Send(notifyParams)
 	if err != nil {
-    c.Logger().Error("通知メール送信エラー:", err)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "送信失敗"})
+		c.Logger().Error("通知メール送信エラー:", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "メールの送信に失敗しました。")
 	}
 
 	// 自動返信メール送信
 	_, err = p.Client.Emails.Send(autoReplyParams)
 	if err != nil {
-		// 自動返信の失敗はログに残すだけでもOK
-		fmt.Println("自動返信の送信に失敗:", err)
+		// 自動返信の失敗はログに残すだけ
+		c.Logger().Error("自動返信メール送信エラー:", err)
 	}
 
-return c.JSON(http.StatusOK, map[string]string{"message": "送信完了"})
+	return c.JSON(http.StatusOK, map[string]string{"message": "送信完了"})
 
 }
